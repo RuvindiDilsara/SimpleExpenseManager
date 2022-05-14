@@ -16,14 +16,53 @@
 
 package lk.ac.mrt.cse.dbs.simpleexpensemanager;
 
-import android.app.Application;
-import android.test.ApplicationTestCase;
+import android.content.Context;
+
+import androidx.test.core.app.ApplicationProvider;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import lk.ac.mrt.cse.dbs.simpleexpensemanager.control.ExpenseManager;
+import lk.ac.mrt.cse.dbs.simpleexpensemanager.control.PersistentExpenseManager;
+import lk.ac.mrt.cse.dbs.simpleexpensemanager.control.exception.ExpenseManagerException;
+import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.exception.InvalidAccountException;
+import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.model.Account;
+import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.model.ExpenseType;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>
  */
-public class ApplicationTest extends ApplicationTestCase<Application> {
-    public ApplicationTest() {
-        super(Application.class);
+public class ApplicationTest {
+
+    private static ExpenseManager expenseManager;
+
+    @Before
+    public void setUp() throws ExpenseManagerException {
+
+        Context context = ApplicationProvider.getApplicationContext();
+        expenseManager = new PersistentExpenseManager(context);
     }
+
+    @Test
+    public void testAddAccount() {
+        expenseManager.addAccount("1234", "BOC", "Ruvindi", 1000.0);
+        List<String> accountNumbersList = expenseManager.getAccountNumbersList();
+        assertTrue(accountNumbersList.contains("1234"));
+    }
+
+    @Test
+    public void testUpdateAccountBalance() throws InvalidAccountException {
+        Account preAccount = expenseManager.getAccountsDAO().getAccount("1234");
+        double preBalance = preAccount.getBalance();
+        expenseManager.updateAccountBalance("1234", 12, 05, 2022, ExpenseType.EXPENSE, "1000");
+        Account postAccount = expenseManager.getAccountsDAO().getAccount("1234");
+        double postBalance = postAccount.getBalance();
+        assertTrue(preBalance-postBalance == 1000.0);
+    }
+
 }
